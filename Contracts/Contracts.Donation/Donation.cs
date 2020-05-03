@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DonationService.Contracts
+namespace Contracts.Donation
 {
     public class Donation
     {

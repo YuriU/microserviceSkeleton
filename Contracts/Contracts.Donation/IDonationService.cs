@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
-using DonationService.Contracts;
 
-namespace DonationService
+namespace Contracts.Donation
 {
     public interface IDonationService
     {
