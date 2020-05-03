@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -22,10 +24,15 @@ namespace WebApi
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        // Built in container setup
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+        }
+
+        // Autofac container setup
+        public void ConfigureContainer(ContainerBuilder builder) {
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
