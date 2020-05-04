@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\BuildingBlocks\Cache\Cache\Cache.csproj" />
       <ProjectReference Include="..\..\Contracts\Contracts.Donation\Contracts.Donation.csproj" />
       <ProjectReference Include="..\..\Data\Data.Repository\Data.Repository.csproj" />
       <ProjectReference Include="..\..\Model\Model.Donations\Model.Donations.csproj" />

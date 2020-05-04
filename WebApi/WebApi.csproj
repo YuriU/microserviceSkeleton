@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BuildingBlocks\Cache\Cache.Redis\Cache.Redis.csproj" />
     <ProjectReference Include="..\Contracts\Contracts.Donation\Contracts.Donation.csproj" />
     <ProjectReference Include="..\Data\Data.Repository.EF\Data.Repository.EF.csproj" />
     <ProjectReference Include="..\Services\Services.Donations\Services.Donations.csproj" />

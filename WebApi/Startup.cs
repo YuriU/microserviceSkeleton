@@ -1,4 +1,6 @@
 using Autofac;
+using Cache;
+using Cache.Redis;
 using Contracts.Donation;
 using Data.Repository;
 using Data.Repository.EF;
@@ -57,6 +59,25 @@ namespace WebApi
             
             builder.RegisterType<DonationService>().As<IDonationService>();
             builder.RegisterType<DonationsRepository>().As<IDonationsRepository>();
+            
+            builder.Register(container =>
+            {
+                var configuration = container.Resolve<IConfiguration>();
+                var databaseSettings = new CacheSettings();
+                configuration.Bind("Cache", databaseSettings);
+                return databaseSettings;
+            })
+            .As<CacheSettings>()
+            .SingleInstance();
+
+            // TODO: Split up multiplexor and cache service objects, because they have different lifetime
+            builder.Register(container =>
+            {
+                var cacheSettings = container.Resolve<CacheSettings>();
+                return new CacheService(cacheSettings.ConnectionString);
+            })
+            .As<ICacheService>()
+            .SingleInstance();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Cache;
 using Contracts.Donation;
 using Data.Repository;
 using Model.Donations;
@@ -9,16 +11,33 @@ namespace Services.Donations
 {
     public class DonationService : IDonationService
     {
-        private IDonationsRepository _repository;
+        private const string TotalAmountKey = "TotalAmount";
+        
+        private readonly IDonationsRepository _repository;
 
-        public DonationService(IDonationsRepository repository)
+        
+        private ICacheService _cacheService;
+
+        public DonationService(IDonationsRepository repository, ICacheService cacheService)
         {
             _repository = repository;
+            _cacheService = cacheService;
         }
 
-        public Task<int> GetTotalDonationsAmount()
+        public async Task<int> GetTotalDonationsAmount()
         {
-            return Task.FromResult(233);
+            var cachedValue = await _cacheService.Get<int>(TotalAmountKey);
+            if (cachedValue.Exists)
+            {
+                return cachedValue.Value;
+            }
+            else
+            {
+                var donations = await _repository.GetAllDonations();
+                var total = (int)donations.Sum(d => d.Amount);
+                await _cacheService.Set(TotalAmountKey, total, TimeSpan.FromSeconds(30));
+                return total;
+            }
         }
 
         public async Task Donate(Donation donation)
