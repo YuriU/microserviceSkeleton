@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Contracts.Donation;
+using Model.Donations;
 
-namespace Services.Donation
+namespace Services.Donations
 {
     public class DonationService : IDonationService
     {
@@ -11,7 +12,7 @@ namespace Services.Donation
             return Task.FromResult(233);
         }
 
-        public Task Donate(Contracts.Donation.Donation donation)
+        public Task Donate(Donation donation)
         {
             throw new NotImplementedException();
         }

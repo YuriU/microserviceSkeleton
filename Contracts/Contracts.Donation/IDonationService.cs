@@ -6,6 +6,6 @@ namespace Contracts.Donation
     {
         Task<int> GetTotalDonationsAmount();
 
-        Task Donate(Donation donation);
+        Task Donate(Model.Donations.Donation donation);
     }
 }
