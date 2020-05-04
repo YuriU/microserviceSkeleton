@@ -15,5 +15,12 @@ services:
       
   webapi:
     build: .
+    depends_on:
+      - postgres
+      - redis
+      
+    environment:
+        - "Database:ConnectionString=Host=postgres;Port=5432;Database=usersdb;Username=postgres;Password=docker"
+        - "Cache:ConnectionString=redis"
     ports:
-      - "5003:80"
+      - "5000:80"
