@@ -1,19 +1,29 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Model.Donations;
+
 
 namespace Data.Repository.EF
 {
     public class DonationsRepository : IDonationsRepository
     {
-        public Task AddDonation(Donation donation)
+        private DonationsDbContext _dbContext;
+
+        public DonationsRepository(DonationsDbContext dbContext)
         {
-            throw new System.NotImplementedException();
+            _dbContext = dbContext;
+        }
+
+        public async Task AddDonation(Donation donation)
+        {
+            _dbContext.Add(donation);
+            await _dbContext.SaveChangesAsync();
         }
 
         public Task<List<Donation>> GetAllDonations()
         {
-            throw new System.NotImplementedException();
+            return _dbContext.Set<Donation>().AsNoTracking().ToListAsync();
         }
     }
 }

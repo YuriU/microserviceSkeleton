@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Contracts.Donation;
 using Microsoft.AspNetCore.Mvc;
 using Model.Donations;
@@ -16,10 +18,16 @@ namespace WebApi.Controllers
             _donationService = donationService;
         }
 
-        [HttpGet]
+        [HttpGet("totalAmount")]
         public Task<int> GetTotalAmount()
         {
             return _donationService.GetTotalDonationsAmount();
+        }
+        
+        [HttpGet("donations")]
+        public async Task<List<Donation>> GetAllDonations()
+        {
+            return await _donationService.GetAllDonations();
         }
 
         [HttpPost]

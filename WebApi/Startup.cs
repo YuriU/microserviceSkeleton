@@ -1,19 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using Contracts.Donation;
+using Data.Repository;
+using Data.Repository.EF;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Services.Donations;
 
@@ -41,7 +36,27 @@ namespace WebApi
         // Autofac container setup
         public void ConfigureContainer(ContainerBuilder builder)
         {
+            builder.Register(container =>
+            {
+                var configuration = container.Resolve<IConfiguration>();
+                var databaseSettings = new DatabaseSettings();
+                configuration.Bind("Database", databaseSettings);
+                return databaseSettings;
+            }).As<DatabaseSettings>();
+
+            builder.Register(container =>
+            {
+                var settings = container.Resolve<DatabaseSettings>();
+                DonationsDbContext cx = new DonationsDbContext(c =>
+                {
+                    c.UseNpgsql(settings.ConnectionString,
+                        b => b.MigrationsAssembly(typeof(Program).Assembly.FullName));
+                });
+                return cx; 
+            });
+            
             builder.RegisterType<DonationService>().As<IDonationService>();
+            builder.RegisterType<DonationsRepository>().As<IDonationsRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
