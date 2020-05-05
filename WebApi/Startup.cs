@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Autofac;
 using Cache;
 using Cache.Redis;
@@ -32,13 +34,30 @@ namespace WebApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
+                
+                c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.OAuth2,
+                    Flows = new OpenApiOAuthFlows 
+                    {
+                        AuthorizationCode = new OpenApiOAuthFlow
+                        {
+                            TokenUrl = new Uri("<TOKEN_URI>"),
+                            AuthorizationUrl = new Uri("<AUTHORIZE_URI>"),
+                            Scopes = new Dictionary<string, string>
+                            {
+                                { "openid", "token" }
+                            }
+                        },
+                    },
+                });
             });
 
             services.AddAuthentication("Bearer")
                 .AddJwtBearer(options =>
                 {
-                    options.Audience = "<MyAudience>";
-                    options.Authority = "<MyAuthority>";
+                    options.Audience = "<USERPOOL_ID>";
+                    options.Authority = "<USER_POOL_URL>";
                 });
         }
 
@@ -107,7 +126,9 @@ namespace WebApi
             app.UseRewriter(option);
             
             app.UseHttpsRedirection();
-
+            
+            app.UseAuthentication();
+            
             app.UseRouting();
 
             app.UseAuthorization();
