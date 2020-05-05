@@ -33,6 +33,13 @@ namespace WebApi
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
             });
+
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer(options =>
+                {
+                    options.Audience = "<MyAudience>";
+                    options.Authority = "<MyAuthority>";
+                });
         }
 
         // Autofac container setup
