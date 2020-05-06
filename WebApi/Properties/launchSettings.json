@@ -12,7 +12,10 @@
         "Database:ConnectionString": "Host=localhost;Port=5432;Database=usersdb;Username=postgres;Password=docker",
         "Cache:ConnectionString": "localhost",
         
-        "Auth:TokenUrl": "123"
+        "Auth:TokenUrl": "<>",
+        "Auth:AuthorizationUrl": "<>",
+        "Auth:Audience": "<>",
+        "Auth:Authority": "<>"
       }
     }
   }
