@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Services.Donations;
+using WebApi.Settings;
 
 namespace WebApi
 {
@@ -30,6 +31,9 @@ namespace WebApi
         // Built in container setup
         public void ConfigureServices(IServiceCollection services)
         {
+            var authConfiguration = new AuthSettings();
+            Configuration.GetSection("Auth").Bind(authConfiguration);
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -38,12 +42,13 @@ namespace WebApi
                 c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
                     Type = SecuritySchemeType.OAuth2,
+                    Name = "Authorization",
                     Flows = new OpenApiOAuthFlows 
                     {
                         AuthorizationCode = new OpenApiOAuthFlow
                         {
-                            TokenUrl = new Uri("<TOKEN_URI>"),
-                            AuthorizationUrl = new Uri("<AUTHORIZE_URI>"),
+                            TokenUrl = new Uri(authConfiguration.TokenUrl),
+                            AuthorizationUrl = new Uri(authConfiguration.AuthorizationUrl),
                             Scopes = new Dictionary<string, string>
                             {
                                 { "openid", "token" }
@@ -51,13 +56,24 @@ namespace WebApi
                         },
                     },
                 });
+                
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
+                        },
+                        new List<string>() {}
+                    }
+                });
             });
-
+            
             services.AddAuthentication("Bearer")
                 .AddJwtBearer(options =>
                 {
-                    options.Audience = "<USERPOOL_ID>";
-                    options.Authority = "<USER_POOL_URL>";
+                    options.Audience = authConfiguration.Audience;
+                    options.Authority = authConfiguration.Authority;
                 });
         }
 
