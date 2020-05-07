@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Services.Donations;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using WebApi.Settings;
 
 namespace WebApi
@@ -72,6 +73,11 @@ namespace WebApi
             services.AddAuthentication("Bearer")
                 .AddJwtBearer(options =>
                 {
+                    options.TokenValidationParameters.AudienceValidator = (audiences, token, parameters) =>
+                    {
+                        return true;
+                    };
+                    
                     options.Audience = authConfiguration.Audience;
                     options.Authority = authConfiguration.Authority;
                 });
