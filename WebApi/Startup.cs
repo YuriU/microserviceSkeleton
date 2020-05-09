@@ -6,6 +6,7 @@ using Cache.Redis;
 using Contracts.Donation;
 using Data.Repository;
 using Data.Repository.EF;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Rewrite;
@@ -48,8 +49,8 @@ namespace WebApi
                     {
                         AuthorizationCode = new OpenApiOAuthFlow
                         {
-                            TokenUrl = new Uri(authConfiguration.TokenUrl),
-                            AuthorizationUrl = new Uri(authConfiguration.AuthorizationUrl),
+                            TokenUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/token"),
+                            AuthorizationUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/authorize"),
                             Scopes = new Dictionary<string, string>
                             {
                                 { "openid", "token" }
@@ -65,23 +66,47 @@ namespace WebApi
                     In = ParameterLocation.Header
                 });
                 
+                c.AddSecurityDefinition("oauth2_1", new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.OAuth2,
+                    Flows = new OpenApiOAuthFlows()
+                    {
+                        Implicit = new OpenApiOAuthFlow()
+                        {
+                            TokenUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/token"),
+                            AuthorizationUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/authorize"),
+                            Scopes = new Dictionary<string, string>()
+                            {
+                                { "openid", "token" },
+                                { "local/read", "token" }
+                            }
+                        }
+                    }
+                });
+                
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
                         new OpenApiSecurityScheme
                         {
-                            Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "apikey"}
+                            Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "oauth2_1"}
                         },
-                        new List<string>() {"openid", "email", "phone", "profile"}
+                        new List<string>() { "local/read"}
                     }
                 });
             });
             
-            services.AddAuthentication("Bearer")
+            services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
-                    options.Audience = authConfiguration.Audience;
                     options.Authority = authConfiguration.Authority;
+                    options.Audience = "local/read";
+                    options.RequireHttpsMetadata = false;
                 });
         }
 

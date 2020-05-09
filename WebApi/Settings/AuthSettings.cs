@@ -6,6 +6,8 @@
         
         public string AuthorizationUrl { get; set; }
         
+        public string ExternalIdentityUrl { get; set; }
+        
         public string Audience { get; set; }
         
         public string Authority { get; set; }
