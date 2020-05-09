@@ -70,20 +70,9 @@ namespace WebApi
                     {
                         new OpenApiSecurityScheme
                         {
-                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
+                            Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "apikey"}
                         },
-                        new List<string>() { "openid", "openid","email","phone","profile" }
-                    }
-                });
-                
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "apikey" }
-                        },
-                        new List<string>() { "openid", "openid","email","phone","profile" }
+                        new List<string>() {"openid", "email", "phone", "profile"}
                     }
                 });
             });
