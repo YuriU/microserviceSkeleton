@@ -58,6 +58,13 @@ namespace WebApi
                     },
                 });
                 
+                c.AddSecurityDefinition("apikey", new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.ApiKey,
+                    Name = "Authorization",
+                    In = ParameterLocation.Header
+                });
+                
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -65,7 +72,18 @@ namespace WebApi
                         {
                             Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
                         },
-                        new List<string>() {}
+                        new List<string>() { "openid", "openid","email","phone","profile" }
+                    }
+                });
+                
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "apikey" }
+                        },
+                        new List<string>() { "openid", "openid","email","phone","profile" }
                     }
                 });
             });
@@ -73,11 +91,6 @@ namespace WebApi
             services.AddAuthentication("Bearer")
                 .AddJwtBearer(options =>
                 {
-                    options.TokenValidationParameters.AudienceValidator = (audiences, token, parameters) =>
-                    {
-                        return true;
-                    };
-                    
                     options.Audience = authConfiguration.Audience;
                     options.Authority = authConfiguration.Authority;
                 });
