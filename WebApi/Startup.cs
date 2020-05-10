@@ -78,7 +78,7 @@ namespace WebApi
                             Scopes = new Dictionary<string, string>()
                             {
                                 { "openid", "token" },
-                                { "local/read", "token" }
+                                { authConfiguration.Audience, "token" }
                             }
                         }
                     }
@@ -91,7 +91,7 @@ namespace WebApi
                         {
                             Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "oauth2_1"}
                         },
-                        new List<string>() { "local/read"}
+                        new List<string>() { authConfiguration.Audience }
                     }
                 });
             });
@@ -105,7 +105,7 @@ namespace WebApi
                 .AddJwtBearer(options =>
                 {
                     options.Authority = authConfiguration.Authority;
-                    options.Audience = "local/read";
+                    options.Audience = authConfiguration.Audience;
                     options.RequireHttpsMetadata = false;
                 });
         }
@@ -158,6 +158,9 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            var authConfiguration = new AuthSettings();
+            Configuration.GetSection("Auth").Bind(authConfiguration);
+            
             app.UseSwagger();
             
             if (env.IsDevelopment())
@@ -168,6 +171,8 @@ namespace WebApi
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+                c.OAuthClientId(authConfiguration.ClientId);
+                c.OAuthClientSecret(authConfiguration.ClientSecretId);
             });
 
             var option = new RewriteOptions();
