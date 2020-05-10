@@ -2,9 +2,9 @@
 {
     public class AuthSettings
     {
-        public string TokenUrl { get; set; }
+        public string ClientId { get; set; }
         
-        public string AuthorizationUrl { get; set; }
+        public string ClientSecretId { get; set; }
         
         public string ExternalIdentityUrl { get; set; }
         
