@@ -14,9 +14,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using Services.Donations;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using WebApi.Middleware;
 using WebApi.Settings;
 
 namespace WebApi
@@ -59,39 +62,36 @@ namespace WebApi
                     },
                 });
                 
-                c.AddSecurityDefinition("apikey", new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Name = "Authorization",
-                    In = ParameterLocation.Header
-                });
-                
-                c.AddSecurityDefinition("oauth2_1", new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.OAuth2,
-                    Flows = new OpenApiOAuthFlows()
-                    {
-                        Implicit = new OpenApiOAuthFlow()
-                        {
-                            TokenUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/token"),
-                            AuthorizationUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/authorize"),
-                            Scopes = new Dictionary<string, string>()
-                            {
-                                { "openid", "token" },
-                                { authConfiguration.Audience, "token" }
-                            }
-                        }
-                    }
-                });
+                // c.AddSecurityDefinition("oauth2_1", new OpenApiSecurityScheme
+                // {
+                //     Type = SecuritySchemeType.OAuth2,
+                //     Flows = new OpenApiOAuthFlows()
+                //     {
+                //         Implicit = new OpenApiOAuthFlow()
+                //         {
+                //             TokenUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/token"),
+                //             AuthorizationUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/authorize"),
+                //             Scopes = new Dictionary<string, string>()
+                //             {
+                //                 { "openid", "token" },
+                //                 /*{ authConfiguration.Audience, "token" }*/
+                //             },
+                //             Extensions = new Dictionary<string, IOpenApiExtension>
+                //             {
+                //                 {"x-tokenName", new OpenApiString("id_token") }
+                //             },
+                //         }
+                //     }
+                // });
                 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
                         new OpenApiSecurityScheme
                         {
-                            Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "oauth2_1"}
+                            Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "oauth2"}
                         },
-                        new List<string>() { authConfiguration.Audience }
+                        new List<string>() { }
                     }
                 });
             });
@@ -161,12 +161,19 @@ namespace WebApi
             var authConfiguration = new AuthSettings();
             Configuration.GetSection("Auth").Bind(authConfiguration);
             
-            app.UseSwagger();
-            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            // To make it to connect to OpenId, we need to replace access_token to id_token
+            app.UseSwaggerV2WithSecurityExtensions(c =>
+            {
+                c.AuthSchemaToExtensions.Add("oauth2", new Dictionary<string, string>()
+                {
+                    { "x-tokenName", "id_token" } 
+                });
+            });
             
             app.UseSwaggerUI(c =>
             {
@@ -176,7 +183,9 @@ namespace WebApi
             });
 
             var option = new RewriteOptions();
+            
             option.AddRedirect("^$", "swagger");
+            
             app.UseRewriter(option);
             
             app.UseHttpsRedirection();
