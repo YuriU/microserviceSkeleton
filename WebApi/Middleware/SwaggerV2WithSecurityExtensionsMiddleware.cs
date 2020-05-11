@@ -15,16 +15,16 @@ using Swashbuckle.AspNetCore.Swagger;
 
 namespace WebApi.Middleware
 {
-  public class SwaggerWithFixesMiddleware
+  public class SwaggerV2WithSecurityExtensionsMiddleware
   {
       private readonly RequestDelegate _next;
-      private readonly SwaggerWithFixesOptions _options;
+      private readonly SwaggerV2WithSecurityExtensionsOptions _options;
       private readonly TemplateMatcher _requestMatcher;
 
-      public SwaggerWithFixesMiddleware(RequestDelegate next, SwaggerWithFixesOptions options)
+      public SwaggerV2WithSecurityExtensionsMiddleware(RequestDelegate next, SwaggerV2WithSecurityExtensionsOptions options)
       {
         this._next = next;
-        this._options = options ?? new SwaggerWithFixesOptions();
+        this._options = options ?? new SwaggerV2WithSecurityExtensionsOptions();
         this._requestMatcher = new TemplateMatcher(TemplateParser.Parse(this._options.RouteTemplate), new RouteValueDictionary());
       }
 
@@ -69,6 +69,10 @@ namespace WebApi.Middleware
       response.StatusCode = 404;
     }
 
+    /// <summary>
+    /// Updating JObject, adding extensions
+    /// </summary>
+    /// <param name="jObject"></param>
     private void AddSecuritySchemaExtensions(JObject jObject)
     {
       var securityDefinitions = jObject["securityDefinitions"];
@@ -77,13 +81,20 @@ namespace WebApi.Middleware
       {
         if (securityDefinition.Type == JTokenType.Property)
         {
-          var value = securityDefinition as JProperty;
-          var securityDefinitionValue = value.Value as JObject;
-              
-          securityDefinitionValue["x-tokenName"] = "id_token";
+          var securityDefinitionProperty = (JProperty)securityDefinition;
+          var name = securityDefinitionProperty.Name;
+          var value = securityDefinitionProperty.Value as JObject;
 
+          // If extensions for security schema exists
+          if (this._options.AuthSchemaToExtensions.TryGetValue(name, out var extensions) && value != null)
+          {
+            // Apply extensions
+            foreach (var extension in extensions)
+            {
+              value[extension.Key] = extension.Value;    
+            }
+          }
         }
-        Console.WriteLine(securityDefinition);
       }
     }
     
@@ -95,17 +106,22 @@ namespace WebApi.Middleware
       using (var memoryStream = new MemoryStream())
       using (var streamWriter = new StreamWriter(memoryStream))
       {
+          // 1. Writing OpenApiDocument to MemoryStream
           OpenApiJsonWriter openApiJsonWriter = new OpenApiJsonWriter((TextWriter) streamWriter);
           swagger.SerializeAsV2((IOpenApiWriter) openApiJsonWriter);
           streamWriter.Flush();
           memoryStream.Seek(0l, SeekOrigin.Begin);
           
+          // 2. Reading memory stream to construct JObject
           var streamReader = new StreamReader(memoryStream);
           JsonReader jsonReader = new JsonTextReader(streamReader);
 
           var jObject = JObject.Load(jsonReader);
+          
+          // 3. Apply changes to JObject
           AddSecuritySchemaExtensions(jObject);
           
+          // 4. Write updated JObject to response
           await response.WriteAsync(JsonConvert.SerializeObject(jObject, Formatting.Indented), (Encoding) new UTF8Encoding(false), new CancellationToken());
       }
     }
