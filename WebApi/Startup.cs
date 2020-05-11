@@ -62,28 +62,6 @@ namespace WebApi
                     },
                 });
                 
-                // c.AddSecurityDefinition("oauth2_1", new OpenApiSecurityScheme
-                // {
-                //     Type = SecuritySchemeType.OAuth2,
-                //     Flows = new OpenApiOAuthFlows()
-                //     {
-                //         Implicit = new OpenApiOAuthFlow()
-                //         {
-                //             TokenUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/token"),
-                //             AuthorizationUrl = new Uri($"{authConfiguration.ExternalIdentityUrl}/authorize"),
-                //             Scopes = new Dictionary<string, string>()
-                //             {
-                //                 { "openid", "token" },
-                //                 /*{ authConfiguration.Audience, "token" }*/
-                //             },
-                //             Extensions = new Dictionary<string, IOpenApiExtension>
-                //             {
-                //                 {"x-tokenName", new OpenApiString("id_token") }
-                //             },
-                //         }
-                //     }
-                // });
-                
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
